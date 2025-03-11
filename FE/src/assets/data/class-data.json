@@ -1,0 +1,12 @@
+[
+	{"id": 1, "name": "Mathematics", "description": "Basic Mathematics Course", "code": "MATH101"},
+    {"id": 2, "name": "Physics", "description": "Introduction to Physics", "code": "PHYS201"},
+    {"id": 3, "name": "Chemistry", "description": "Organic and Inorganic Chemistry", "code": "CHEM301"},
+    {"id": 4, "name": "Computer Science", "description": "Fundamentals of Programming", "code": "CS401"},
+    {"id": 5, "name": "Biology", "description": "Introduction to Biology", "code": "BIO501"},
+    {"id": 6, "name": "History", "description": "World History", "code": "HIST601"},
+    {"id": 7, "name": "Geography", "description": "Physical and Human Geography", "code": "GEOG701"},
+    {"id": 8, "name": "Economics", "description": "Micro and Macro Economics", "code": "ECON801"},
+    {"id": 9, "name": "Political Science", "description": "Introduction to Political Science", "code": "POLI901"},
+    {"id": 10, "name": "Sociology", "description": "Introduction to Sociology", "code": "SOCI1001"}
+]
