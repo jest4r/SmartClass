@@ -4,7 +4,6 @@ import ProductList from './product-list'
 import AddProduct from './add-product'
 import EditProduct from './edit-product'
 import Orders from './orders'
-import Classes from '../classes'
 
 const Ecommerce = props => {
   const { match } = props

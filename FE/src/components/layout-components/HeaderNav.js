@@ -37,7 +37,7 @@ export const HeaderNav = props => {
   }
 
   const onBack = () => {
-    history.goBack()
+    history.push(`/app`)
   }
 
   const isNavTop = navType === NAV_TYPE_TOP ? true : false
