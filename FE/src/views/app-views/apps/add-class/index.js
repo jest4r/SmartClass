@@ -1,10 +1,20 @@
 import React from 'react';
 import ClassForm from '../Form';
+import classesService from 'services/classes';
 
 const AddClass = () => {
-	return (
-		<ClassForm mode="ADD"/>
-	)
-}
+	const handleSubmit = async (data) => {
+		try {
+			const response = await classesService.create(data);
+			console.log('Class created successfully:', response);
+		} catch (error) {
+			console.error('Error creating class:', error);
+		}
+	};
 
-export default AddClass
+	return (
+		<ClassForm mode="ADD" onSubmit={handleSubmit} />
+	);
+};
+
+export default AddClass;

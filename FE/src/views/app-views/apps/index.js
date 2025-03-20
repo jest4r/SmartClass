@@ -14,6 +14,9 @@ const Apps = ({ match }) => (
       <Route path={`${match.url}/students`} component={lazy(() => import(`./students`))} />
       <Route path={`${match.url}/add-class`} component={lazy(() => import(`./add-class`))} />
 			<Route path={`${match.url}/edit-class/:id`} component={lazy(() => import(`./edit-class`))} />
+      <Route path={`${match.url}/view-class/:id`} component={lazy(() => import(`./view-class`))} />
+      <Route path={`${match.url}/copy-class/:id`} component={lazy(() => import(`./copy-class`))} />
+
       <Redirect from={`${match.url}`} to={`${match.url}/classes`} />
     </Switch>
   </Suspense>
