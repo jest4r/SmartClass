@@ -2,7 +2,7 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
-class ClassValidator:
+class Validator:
     @staticmethod
     def validate_creation_data(data):
         """Validate data for class creation"""
