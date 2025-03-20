@@ -1,39 +1,39 @@
 import json
 import logging
 from odoo import http
-from .class_base_controller import BaseController
-from ..controllers.class_controller import ClassController
+from .student_base_controller import StudentBaseController
+from ..controllers.student_controller import StudentController
 from ..utils.Validator import Validator
 
 _logger = logging.getLogger(__name__)
 
-class ClassAPI(BaseController):
-    """API endpoints for class management"""
+class StudentAPI(StudentBaseController):
+    """API endpoints for student management"""
     
     # === GET ENDPOINTS ===
-    @http.route(['/api/classes/<id>'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['GET'])
+    @http.route(['/api/students/<id>'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['GET'])
     def get_by_id(self, id, **kw):
-        _logger.info(f"API: Get class by ID: {id}")
+        _logger.info(f"API: Get student by ID: {id}")
         try:
             dbname = self.get_db_name(kw)
-            result = ClassController.get_by_id(dbname, id)
+            result = StudentController.get_by_id(dbname, id)
             return self.make_json_response(result)
         except Exception as e:
-            return self.make_json_response(self.handle_exception(e, "getting class by ID"))
+            return self.make_json_response(self.handle_exception(e, "getting student by ID"))
 
-    @http.route(['/api/classes'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['GET'])
+    @http.route(['/api/students'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['GET'])
     def get_all(self, **kw):
-        _logger.info("API: Get all classes")
+        _logger.info("API: Get all students")
         try:
             dbname = self.get_db_name(kw)
-            result = ClassController.get_all(dbname)
+            result = StudentController.get_all(dbname)
             return self.make_json_response(result)
         except Exception as e:
-            return self.make_json_response(self.handle_exception(e, "getting all classes"))
+            return self.make_json_response(self.handle_exception(e, "getting all students"))
 
-    @http.route(['/api/classes/page/<int:page>'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['GET'])
+    @http.route(['/api/students/page/<int:page>'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['GET'])
     def get_paginated(self, page, **kw):
-        _logger.info(f"API: Get paginated classes, page: {page}")
+        _logger.info(f"API: Get paginated students, page: {page}")
         try:
             dbname = self.get_db_name(kw)
             
@@ -41,7 +41,7 @@ class ClassAPI(BaseController):
             size = int(kw.get('size', 10))
             order_param = kw.get('order', '')
             search = kw.get('search', '').strip()
-            column_list = kw.get('columnlist', '').split(',') if kw.get('columnlist') else ['id', 'code', 'name', 'description']
+            column_list = kw.get('columnlist', '').split(',') if kw.get('columnlist') else ['id', 'code', 'fullname', 'dob', 'class_id', 'email', 'phone']
             top_list = list(map(int, kw.get('toplist', '').split(','))) if kw.get('toplist') else []
 
             # Validate parameters
@@ -53,15 +53,15 @@ class ClassAPI(BaseController):
                     "data": None
                 })
 
-            result = ClassController.get_paginated(dbname, page, size, order_param, search, column_list, top_list)
+            result = StudentController.get_paginated(dbname, page, size, order_param, search, column_list, top_list)
             return self.make_json_response(result)
         except Exception as e:
-            return self.make_json_response(self.handle_exception(e, "getting paginated classes"))
+            return self.make_json_response(self.handle_exception(e, "getting paginated students"))
 
     # === CREATE/UPDATE/DELETE ENDPOINTS ===
-    @http.route(['/api/classes'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['POST'])
+    @http.route(['/api/students'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['POST'])
     def create(self, **kw):
-        _logger.info("API: Create new class")
+        _logger.info("API: Create new student")
         try:
             dbname = self.get_db_name(kw)
             
@@ -78,7 +78,7 @@ class ClassAPI(BaseController):
                     "data": None
                 })
                 
-            result = ClassController.create(dbname, data)
+            result = StudentController.create(dbname, data)
             return self.make_json_response(result)
         except json.JSONDecodeError:
             return self.make_json_response({
@@ -88,18 +88,18 @@ class ClassAPI(BaseController):
                 "data": None
             })
         except Exception as e:
-            return self.make_json_response(self.handle_exception(e, "creating class"))
+            return self.make_json_response(self.handle_exception(e, "creating student"))
 
-    @http.route(['/api/classes/<id>'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['POST'])
+    @http.route(['/api/students/<id>'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['PUT'])
     def update(self, id, **kw):
-        _logger.info(f"API: Update class, ID: {id}")
+        _logger.info(f"API: Update student, ID: {id}")
         try:
             dbname = self.get_db_name(kw)
             
             # Parse JSON data from request body
             data = json.loads(http.request.httprequest.data.decode('utf-8'))
             
-            result = ClassController.update(dbname, id, data)
+            result = StudentController.update(dbname, id, data)
             return self.make_json_response(result)
         except json.JSONDecodeError:
             return self.make_json_response({
@@ -109,22 +109,22 @@ class ClassAPI(BaseController):
                 "data": None
             })
         except Exception as e:
-            return self.make_json_response(self.handle_exception(e, "updating class"))
+            return self.make_json_response(self.handle_exception(e, "updating student"))
 
-    @http.route(['/api/classes/<id>'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['DELETE'])
+    @http.route(['/api/students/<id>'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['DELETE'])
     def delete(self, id, **kw):
-        _logger.info(f"API: Delete class, ID: {id}")
+        _logger.info(f"API: Delete student, ID: {id}")
         try:
             dbname = self.get_db_name(kw)
-            result = ClassController.delete(dbname, id)
+            result = StudentController.delete(dbname, id)
             return self.make_json_response(result)
         except Exception as e:
-            return self.make_json_response(self.handle_exception(e, "deleting class"))
+            return self.make_json_response(self.handle_exception(e, "deleting student"))
 
     # === BATCH OPERATIONS ===
-    @http.route(['/api/classes/delete'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['DELETE'])
+    @http.route(['/api/students/delete'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['DELETE'])
     def mass_delete(self, **kw):
-        _logger.info("API: Mass delete classes")
+        _logger.info("API: Mass delete students")
         try:
             dbname = self.get_db_name(kw)
             
@@ -148,7 +148,7 @@ class ClassAPI(BaseController):
                     "data": None
                 })
                 
-            result = ClassController.mass_delete(dbname, id_list)
+            result = StudentController.mass_delete(dbname, id_list)
             return self.make_json_response(result)
         except json.JSONDecodeError:
             return self.make_json_response({
@@ -158,20 +158,35 @@ class ClassAPI(BaseController):
                 "data": None
             })
         except Exception as e:
-            return self.make_json_response(self.handle_exception(e, "mass deleting classes"))
+            return self.make_json_response(self.handle_exception(e, "mass deleting students"))
 
-    @http.route(['/api/classes/<id>/copy'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['POST'])
-    def copy(self, id, **kw):
-        _logger.info(f"API: Copy class, ID: {id}")
+    @http.route(['/api/students/copy'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['POST'])
+    def mass_copy(self, **kw):
+        _logger.info("API: Mass copy students")
         try:
             dbname = self.get_db_name(kw)
             
-            # Parse JSON data from request body for additional settings if needed
-            data = {}
-            if http.request.httprequest.data:
-                data = json.loads(http.request.httprequest.data.decode('utf-8'))
+            # Parse JSON data from request body
+            data = json.loads(http.request.httprequest.data.decode('utf-8'))
+            
+            if 'idlist' not in data:
+                return self.make_json_response({
+                    "code": 400,
+                    "status": "error",
+                    "message": "Missing idlist parameter",
+                    "data": None
+                })
                 
-            result = ClassController.copy(dbname, id, data)
+            id_list = data['idlist']
+            if not isinstance(id_list, list):
+                return self.make_json_response({
+                    "code": 400,
+                    "status": "error",
+                    "message": "idlist must be an array",
+                    "data": None
+                })
+                
+            result = StudentController.mass_copy(dbname, id_list)
             return self.make_json_response(result)
         except json.JSONDecodeError:
             return self.make_json_response({
@@ -181,17 +196,17 @@ class ClassAPI(BaseController):
                 "data": None
             })
         except Exception as e:
-            return self.make_json_response(self.handle_exception(e, f"copying class with ID {id}"))
+            return self.make_json_response(self.handle_exception(e, "mass copying students"))
 
     # === IMPORT/EXPORT ===
-    @http.route(['/api/classes/import'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['POST'])
+    @http.route(['/api/students/import'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['POST'])
     def import_data(self, **kw):
-        _logger.info("API: Import classes")
+        _logger.info("API: Import students")
         try:
             dbname = self.get_db_name(kw)
             
             # Get file attachment from request
-            attachment = http.request.httprequest.files.get('attachment')
+            attachment = http.request.httprequest.files.get('file')
             if not attachment:
                 return self.make_json_response({
                     "code": 400,
@@ -200,20 +215,20 @@ class ClassAPI(BaseController):
                     "data": None
                 })
                 
-            result = ClassController.import_data(dbname, attachment)
+            result = StudentController.import_data(dbname, attachment)
             return self.make_json_response(result)
         except Exception as e:
-            return self.make_json_response(self.handle_exception(e, "importing classes"))
+            return self.make_json_response(self.handle_exception(e, "importing students"))
 
-    @http.route(['/api/classes/export'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['GET'])
+    @http.route(['/api/students/export'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['GET'])
     def export_all(self, **kw):
-        _logger.info("API: Export all classes")
+        _logger.info("API: Export all students")
         try:
             dbname = self.get_db_name(kw)
             
             # Parse parameters
             export_type = kw.get('type', 'csv').lower()
-            column_list = kw.get('columnlist', '').split(',') if kw.get('columnlist') else ['id', 'code', 'name', 'description']
+            column_list = kw.get('columnlist', '').split(',') if kw.get('columnlist') else ['id', 'code', 'fullname', 'dob', 'email', 'phone']
             
             if export_type not in ['csv', 'xlsx']:
                 return self.make_json_response({
@@ -223,24 +238,24 @@ class ClassAPI(BaseController):
                     "data": None
                 })
                 
-            buffer, filename = ClassController.export_all(dbname, export_type, column_list)
+            buffer, filename = StudentController.export_all(dbname, export_type, column_list)
             
             return http.request.make_response(buffer, headers=[
                 ("Content-Type", "application/octet-stream"),
                 ("Content-Disposition", http.content_disposition(filename))
             ])
         except Exception as e:
-            return self.make_json_response(self.handle_exception(e, "exporting all classes"))
+            return self.make_json_response(self.handle_exception(e, "exporting all students"))
 
-    @http.route(['/api/classes/export/<id>'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['GET'])
+    @http.route(['/api/students/export/<id>'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['GET'])
     def export_by_id(self, id, **kw):
-        _logger.info(f"API: Export class by ID: {id}")
+        _logger.info(f"API: Export student by ID: {id}")
         try:
             dbname = self.get_db_name(kw)
             
             # Parse parameters
             export_type = kw.get('type', 'csv').lower()
-            column_list = kw.get('columnlist', '').split(',') if kw.get('columnlist') else ['id', 'code', 'name', 'description']
+            column_list = kw.get('columnlist', '').split(',') if kw.get('columnlist') else ['id', 'code', 'fullname', 'dob', 'email', 'phone']
             
             if export_type not in ['csv', 'xlsx']:
                 return self.make_json_response({
@@ -250,18 +265,18 @@ class ClassAPI(BaseController):
                     "data": None
                 })
                 
-            buffer, filename = ClassController.export_by_id(dbname, id, export_type, column_list)
+            buffer, filename = StudentController.export_by_id(dbname, id, export_type, column_list)
             
             return http.request.make_response(buffer, headers=[
                 ("Content-Type", "application/octet-stream"),
                 ("Content-Disposition", http.content_disposition(filename))
             ])
         except Exception as e:
-            return self.make_json_response(self.handle_exception(e, "exporting class by ID"))
+            return self.make_json_response(self.handle_exception(e, "exporting student by ID"))
 
-    @http.route(['/api/classes/export'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['POST'])
+    @http.route(['/api/students/export'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['POST'])
     def mass_export(self, **kw):
-        _logger.info("API: Mass export classes")
+        _logger.info("API: Mass export students")
         try:
             dbname = self.get_db_name(kw)
             
@@ -287,7 +302,7 @@ class ClassAPI(BaseController):
                 
             # Parse other parameters
             export_type = data.get('type', 'csv').lower()
-            column_list = data.get('columnlist', ['id', 'code', 'name', 'description'])
+            column_list = data.get('columnlist', ['id', 'code', 'fullname', 'dob', 'email', 'phone'])
             
             if export_type not in ['csv', 'xlsx']:
                 return self.make_json_response({
@@ -297,7 +312,7 @@ class ClassAPI(BaseController):
                     "data": None
                 })
                 
-            buffer, filename = ClassController.mass_export(dbname, id_list, export_type, column_list)
+            buffer, filename = StudentController.mass_export(dbname, id_list, export_type, column_list)
             
             return http.request.make_response(buffer, headers=[
                 ("Content-Type", "application/octet-stream"),
@@ -311,4 +326,4 @@ class ClassAPI(BaseController):
                 "data": None
             })
         except Exception as e:
-            return self.make_json_response(self.handle_exception(e, "mass exporting classes"))
+            return self.make_json_response(self.handle_exception(e, "mass exporting students"))

@@ -1,2 +1,2 @@
 from . import class_controller
-from . import StudensController
+from . import student_controller
