@@ -69,14 +69,14 @@ class StudentAPI(StudentBaseController):
             data = json.loads(http.request.httprequest.data.decode('utf-8'))
             
             # Validate data
-            valid, message = Validator.validate_creation_data(data)
-            if not valid:
-                return self.make_json_response({
-                    "code": 400,
-                    "status": "error",
-                    "message": message,
-                    "data": None
-                })
+            # valid, message = Validator.validate_creation_data(data)
+            # if not valid:
+            #     return self.make_json_response({
+            #         "code": 400,
+            #         "status": "error",
+            #         "message": message,
+            #         "data": None
+            #     })
                 
             result = StudentController.create(dbname, data)
             return self.make_json_response(result)
@@ -90,7 +90,7 @@ class StudentAPI(StudentBaseController):
         except Exception as e:
             return self.make_json_response(self.handle_exception(e, "creating student"))
 
-    @http.route(['/api/students/<id>'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['PUT'])
+    @http.route(['/api/students/<id>'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['POST'])
     def update(self, id, **kw):
         _logger.info(f"API: Update student, ID: {id}")
         try:
@@ -160,33 +160,15 @@ class StudentAPI(StudentBaseController):
         except Exception as e:
             return self.make_json_response(self.handle_exception(e, "mass deleting students"))
 
-    @http.route(['/api/students/copy'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['POST'])
-    def mass_copy(self, **kw):
-        _logger.info("API: Mass copy students")
+    @http.route(['/api/students/<id>/copy'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['POST'])
+    def copy(self, id, **kw):
+        _logger.info(f"API: Copy student, ID: {id}")
         try:
             dbname = self.get_db_name(kw)
             
-            # Parse JSON data from request body
-            data = json.loads(http.request.httprequest.data.decode('utf-8'))
-            
-            if 'idlist' not in data:
-                return self.make_json_response({
-                    "code": 400,
-                    "status": "error",
-                    "message": "Missing idlist parameter",
-                    "data": None
-                })
+            # Parse JSON data from request body for additional settings if needed
                 
-            id_list = data['idlist']
-            if not isinstance(id_list, list):
-                return self.make_json_response({
-                    "code": 400,
-                    "status": "error",
-                    "message": "idlist must be an array",
-                    "data": None
-                })
-                
-            result = StudentController.mass_copy(dbname, id_list)
+            result = StudentController.copy(dbname, id)
             return self.make_json_response(result)
         except json.JSONDecodeError:
             return self.make_json_response({
@@ -196,7 +178,7 @@ class StudentAPI(StudentBaseController):
                 "data": None
             })
         except Exception as e:
-            return self.make_json_response(self.handle_exception(e, "mass copying students"))
+            return self.make_json_response(self.handle_exception(e, f"copying student with ID {id}"))
 
     # === IMPORT/EXPORT ===
     @http.route(['/api/students/import'], type='http', auth="none", sitemap=False, cors='*', csrf=False, methods=['POST'])
