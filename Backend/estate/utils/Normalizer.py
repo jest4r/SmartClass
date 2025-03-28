@@ -240,7 +240,53 @@ class Normalizer:
                 normalized[key] = value
                 
         return normalized
-    
+    @staticmethod
+    def normalize_student_record(record_data):
+        """
+        Normalize student record data for use in the API.
+        
+        Args:
+            record_data: Dictionary containing student record data
+            
+        Returns:
+            Normalized student record dictionary
+        """
+        if not record_data:
+            return {}
+            
+        normalized = {}
+        
+        # Normalize standard fields
+        normalized['id'] = Normalizer.normalize_integer(record_data.get('id'))
+        normalized['fullname'] = Normalizer.normalize_string(record_data.get('fullname'))
+        normalized['code'] = Normalizer.normalize_code(record_data.get('code'))
+        normalized['username'] = Normalizer.normalize_string(record_data.get('username'))
+        
+        # Handle dates
+        if 'dob' in record_data:
+            normalized['dob'] = record_data.get('dob')  # Keep original format for database compatibility
+        
+        # Handle optional fields with appropriate defaults
+        normalized['sex'] = Normalizer.normalize_string(record_data.get('sex', ''))
+        normalized['email'] = Normalizer.normalize_string(record_data.get('email', ''))
+        normalized['address'] = Normalizer.normalize_string(record_data.get('address', ''))
+        normalized['homecity'] = Normalizer.normalize_string(record_data.get('homecity', ''))
+        normalized['phone'] = Normalizer.normalize_string(record_data.get('phone', ''))
+        
+        # Special handling for class_id (can be False or int)
+        if 'class_id' in record_data:
+            try:
+                normalized['class_id'] = int(record_data.get('class_id')) if record_data.get('class_id') else False
+            except (ValueError, TypeError):
+                normalized['class_id'] = False
+        
+        # Include any additional fields present in the original data
+        for key, value in record_data.items():
+            if key not in normalized:
+                normalized[key] = value
+                
+        return normalized
+
     @staticmethod
     def normalize_search_term(term):
         """

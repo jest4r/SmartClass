@@ -167,11 +167,8 @@ class ClassAPI(BaseController):
             dbname = self.get_db_name(kw)
             
             # Parse JSON data from request body for additional settings if needed
-            data = {}
-            if http.request.httprequest.data:
-                data = json.loads(http.request.httprequest.data.decode('utf-8'))
                 
-            result = ClassController.copy(dbname, id, data)
+            result = ClassController.copy(dbname, id)
             return self.make_json_response(result)
         except json.JSONDecodeError:
             return self.make_json_response({

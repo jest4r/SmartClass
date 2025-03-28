@@ -1,7 +1,6 @@
 import React, {useState} from 'react'
 import { Card, Table, Select, Input, Button, Menu, message } from 'antd';
-import ClassData from "assets/data/class-data.json"
-import classesServicce from 'services/classes'
+import classesService from 'services/classes'
 import { EyeOutlined, DeleteOutlined, SearchOutlined, PlusCircleOutlined, EditOutlined, CopyOutlined } from '@ant-design/icons';
 import AvatarStatus from 'components/shared-components/AvatarStatus';
 import EllipsisDropdown from 'components/shared-components/EllipsisDropdown';
@@ -32,7 +31,7 @@ const Classes = () => {
 	React.useEffect(() => {
 		const fetchClasses = async () => {
 			try {
-				const response = await classesServicce.getAll();
+				const response = await classesService.getAll();
 				setClassesData(response.data || []);
 			} catch (error) {
 				console.error('Error fetching classes:', error);
@@ -100,12 +99,12 @@ const Classes = () => {
 			
 			if (selectedRows.length > 1) {
 				for (const elm of selectedRows) {
-					await classesServicce.delete(elm.id);
+					await classesService.delete(elm.id);
 					data = utils.deleteArrayRow(data, objKey, elm.id);
-					message.success('Classes deleted successfully');
 				}
+				message.success('Classes deleted successfully');
 			} else if (row) {
-				await classesServicce.delete(row.id);
+				await classesService.delete(row.id);
 				data = utils.deleteArrayRow(data, objKey, row.id);
 				message.success('Class deleted successfully');
 			}
@@ -113,18 +112,25 @@ const Classes = () => {
 			setList(data);
 			setSelectedRows([]);
 			setSelectedRowKeys([]);
+			history.push('/app/apps/classes');
 		} catch (error) {
 			message.error('Error deleting class(es)');
 			console.error("Error deleting class(es):", error);
 		}
 	}
+
 	const handleCopy = row => {
-		history.push(`/app/apps/copy-class/${row.id}`, { data: selectedRows.length > 0 ? selectedRows : list });
+		history.push(`/app/apps/copy-class/${row.id}`);
 	}
+
 	const tableColumns = [
 		{
 			title: 'ID',
-			dataIndex: 'id'
+			dataIndex: 'id',
+			render: (_, record, index) => {
+				return index + 1;
+			},
+			sorter: (a, b) => a.id - b.id
 		},
 		{
 			title: 'Class Name',
@@ -136,12 +142,7 @@ const Classes = () => {
 			),
 			sorter: (a, b) => utils.antdTableSorter(a, b, 'name')
 		},
-		// {
-		// 	title: 'Category',
-		// 	dataIndex: 'category',
-		// 	sorter: (a, b) => utils.antdTableSorter(a, b, 'category')
-		// },
-        {
+		{
 			title: 'Code',
 			dataIndex: 'code',
 			sorter: (a, b) => utils.antdTableSorter(a, b, 'code')
@@ -151,19 +152,6 @@ const Classes = () => {
 			dataIndex: 'description',
 			sorter: (a, b) => utils.antdTableSorter(a, b, 'description')
 		},
-		// {
-		// 	title: 'Stock',
-		// 	dataIndex: 'stock',
-		// 	sorter: (a, b) => utils.antdTableSorter(a, b, 'stock')
-		// },
-		// {
-		// 	title: 'Status',
-		// 	dataIndex: 'stock',
-		// 	render: stock => (
-		// 		<Flex alignItems="center">{getStockStatus(stock)}</Flex>
-		// 	),
-		// 	sorter: (a, b) => utils.antdTableSorter(a, b, 'stock')
-		// },
 		{
 			title: '',
 			dataIndex: 'actions',
@@ -184,22 +172,46 @@ const Classes = () => {
 
 	const onSearch = e => {
 		const value = e.currentTarget.value
-		const searchArray = e.currentTarget.value? list : ClassData
+		const searchArray = e.currentTarget.value? list : ClassesData
 		const data = utils.wildCardSearch(searchArray, value)
 		setList(data)
 		setSelectedRowKeys([])
 	}
 	const handleExport = () => {
 		console.log('exporting')
-		history.push('/app/apps/export-classes', { data: selectedRows.length > 0 ? selectedRows : list });
+		history.push('/app/apps/export-class');
 	}
 	const handleImport = () => {
 		console.log('importing')
-		history.push('/app/apps/import-classes');
+
+		// Display file import dialog or redirect to import page
+		// You don't need additional code here since you're already
+		// navigating to the import page with history.push
+		history.push('/app/apps/import-class');
 	}
 	const handleDelete = () => {
 		console.log('deleting')
 		deleteRow()
+	}
+
+	const handleMultipleCopy = async (row) => { 
+		try {
+			if (selectedRows.length > 1) {
+				for (const elm of selectedRows) {
+					await classesService.copy(elm.id);
+				}
+				message.success('Classes copied successfully');
+				history.push('/app/apps/classes');
+			} else if (row) {
+				await classesService.copy(row.id);
+				message.success('Class copied successfully');
+			}
+			setSelectedRows([]);
+			setSelectedRowKeys([]);
+		} catch (error) {
+			message.error('Error copying class(es)');
+			console.error("Error copying class(es):", error);
+		}
 	}
 	
 
@@ -220,11 +232,14 @@ const Classes = () => {
 								if (value === 'Export') handleExport();
 								if (value === 'Import') handleImport();
 								if (value === 'Delete') handleDelete();
+								if (value === 'Copy') handleMultipleCopy();
 							}}
 						>
 							<Option value="Export">Export data</Option>
 							<Option value="Import">Import data</Option>
 							<Option value="Delete">Delete data</Option>
+							<Option value="Copy">Copy data</Option>
+							
 						</Select>
 					</div>
 				</Flex>
@@ -236,7 +251,11 @@ const Classes = () => {
 				<Table 
 					columns={tableColumns} 
 					dataSource={list} 
-					rowKey='id' 
+					rowKey='id'
+					pagination={{
+						showSizeChanger: true,
+						showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
+					}}
 					rowSelection={{
 						selectedRowKeys: selectedRowKeys,
 						type: 'checkbox',

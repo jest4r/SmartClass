@@ -3,6 +3,7 @@ from .db_connection import DatabaseConnection
 from ..utils.Export_Factory import ExportFactory
 from ..utils.Import_Factory import ImportFactory
 
+
 _logger = logging.getLogger(__name__)
 
 class StudentController:
@@ -37,8 +38,10 @@ class StudentController:
                     "address": rec.address,
                     "homecity": rec.homecity,
                     "phone": rec.phone,
-                    "class_id": rec.class_id.id if rec.class_id else False,
+                    "class_id": rec.class_id.code if rec.class_id else False,
                     "username": rec.username,
+                    "password": rec.password,
+                    "attachment": rec.attachment
                 }
             }
         except Exception as e:
@@ -64,6 +67,15 @@ class StudentController:
                     "fullname": rec.fullname,
                     "code": rec.code,
                     "dob": rec.dob,
+                    "sex": rec.sex,
+                    "email": rec.email,
+                    "address": rec.address,
+                    "homecity": rec.homecity,
+                    "phone": rec.phone,
+                    "class_id": rec.class_id.code if rec.class_id else None,
+                    "username": rec.username,
+                    "password": rec.password,
+                    "attachment": rec.attachment
                 })
                 
             return {
@@ -185,14 +197,17 @@ class StudentController:
             env, cr = DatabaseConnection.get_env(dbname)
             
             # Check for required fields
-            required_fields = ['fullname', 'dob', 'code', 'username', 'password']
-            if not all(field in data for field in required_fields):
-                return {
-                    "code": 400,
-                    "status": "error",
-                    "message": "Missing required fields: fullname, dob, code, username, password",
-                    "data": None
-                }
+            required_fields = ['fullname', 'dob', 'code', 'username', 'password', 'class_id', "sex", "email", "address", "homecity", "phone"]
+            print(data)
+
+            for field in required_fields:
+                if field not in data.keys():
+                    return {
+                        "code": 400,
+                        "status": "error",
+                        "message": "Missing required fields",
+                        "data": None
+                    }
             
             # Check for duplicate code
             existing_record = env[StudentController.MODEL_NAME].search([('code', '=', data['code'])], limit=1)
@@ -203,7 +218,7 @@ class StudentController:
                     "message": f"Record with code {data['code']} already exists",
                     "data": None
                 }
-
+            print(int(data.get('class_id', 0)) or None)
             # Create student record
             new_record = env[StudentController.MODEL_NAME].create({
                 'fullname': data['fullname'],
@@ -216,11 +231,12 @@ class StudentController:
                 'address': data.get('address', ''),
                 'homecity': data.get('homecity', ''),
                 'phone': data.get('phone', ''),
-                'class_id': int(data.get('class_id', 0)) or False
+                'class_id': int(data.get('class_id', 0)) or None,
+                'attachment': data.get('attachment', ''),
             })
             
             cr.commit()
-            
+            print(new_record)
             return {
                 "code": 201,
                 "status": "ok",
@@ -230,10 +246,12 @@ class StudentController:
                     "fullname": new_record.fullname,
                     "code": new_record.code,
                     "dob": new_record.dob,
-                    "username": new_record.username
+                    "username": new_record.username,
+                    "class_id": new_record.class_id.id,
+                    "kkk": new_record
                 }
             }
-            
+        
         except Exception as e:
             _logger.error(f"Error creating student: {e}")
             return {
@@ -381,63 +399,59 @@ class StudentController:
             }
     
     @staticmethod
-    def mass_copy(dbname, id_list):
-        """Copy multiple students"""
+    def copy(dbname, id):
+        """Copy a single student by ID"""
         try:
             env, cr = DatabaseConnection.get_env(dbname)
             
-            # Convert all IDs to integers
-            id_list = [int(id) for id in id_list]
+            # Find existing record
+            record = env[StudentController.MODEL_NAME].search([('id', '=', int(id))], limit=1)
             
-            # Find existing records
-            records = env[StudentController.MODEL_NAME].search([('id', 'in', id_list)])
-            
-            if not records:
+            if not record:
                 return {
                     "code": 404,
                     "status": "error",
-                    "message": "No records found with the provided IDs",
+                    "message": f"Record with ID {id} not found",
                     "data": None
                 }
 
-            new_records_data = []
-            
-            # Copy each record
-            for record in records:
-                # Generate new code
-                new_code = f"{record.code}-copy"
-                copy_counter = 1
-                while env[StudentController.MODEL_NAME].search([('code', '=', new_code)], limit=1):
-                    new_code = f"{record.code}-copy{copy_counter}"
-                    copy_counter += 1
+            # Generate new code
+            new_code = f"{record.code}-copy"
+            copy_counter = 1
+            while env[StudentController.MODEL_NAME].search([('code', '=', new_code)], limit=1):
+                new_code = f"{record.code}-copy{copy_counter}"
+                copy_counter += 1
 
-                # Create new record with core fields
-                new_record = env[StudentController.MODEL_NAME].create({
-                    'fullname': f"{record.fullname} (Copy)",
-                    'dob': record.dob,
-                    'code': new_code,
-                    'username': f"{record.username}_copy",
-                    'password': record.password,
-                    'class_id': record.class_id.id if record.class_id else False
-                })
-                
-                new_records_data.append({
-                    "id": new_record.id,
-                    "code": new_record.code,
-                    "fullname": new_record.fullname,
-                    "dob": new_record.dob
-                })
+            # Create new record
+            new_record = env[StudentController.MODEL_NAME].create({
+                'fullname': f"{record.fullname} (Copy)",
+                'code': new_code,
+                'dob': record.dob,
+                'sex': record.sex,
+                'email': record.email,
+                'address': record.address,
+                'homecity': record.homecity,
+                'phone': record.phone,
+                'class_id': record.class_id.id   if record.class_id else False,
+                'username': record.username + '-copy',
+                'password': record.password,
+                'attachment': record.attachment,
+            })
             
             cr.commit()
             
             return {
                 "code": 200,
                 "status": "success",
-                "message": f"Successfully copied {len(new_records_data)} records",
-                "data": new_records_data
+                "message": "Record copied successfully",
+                "data": {
+                    "id": new_record.id,
+                    "code": new_record.code,
+                    "fullname": new_record.fullname
+                }
             }
         except Exception as e:
-            _logger.error(f"Error in mass copy: {e}")
+            _logger.error(f"Error copying student with id {id}: {e}")
             return {
                 "code": 500,
                 "status": "error",
@@ -498,19 +512,139 @@ class StudentController:
             exporter = ExportFactory.create_exporter(export_type)
             buffer, extension = exporter.export(data, column_list)
             
-            filename = f"class_{id}_export.{extension}"
+            filename = f"student_{id}_export.{extension}"
             return buffer, filename
             
         except Exception as e:
-            _logger.error(f"Error exporting class with id {id}: {e}")
+            _logger.error(f"Error exporting student with id {id}: {e}")
             raise
-        # Use export factory to create the appropriate exporter
-            exporter = ExportFactory.create_exporter(export_type)
-            buffer, extension = exporter.export(data, column_list)
+    @staticmethod
+    def import_data(dbname, attachment):
+        """Import students from file"""
+        try:
+            env, cr = DatabaseConnection.get_env(dbname)
             
-            filename = f"class_{id}_export.{extension}"
-            return buffer, filename
+            # Get the file extension
+            filename = attachment.filename
+            extension = filename.split('.')[-1].lower()
             
+            # Use import factory to create the appropriate importer
+           
+            importer = ImportFactory.create_importer(extension)
+            
+            # Read the file content
+            file_content = attachment.read()
+            
+            # Import data
+            data_rows = importer.import_data(file_content)
+            
+            if not data_rows:
+                return {
+                    "code": 400,
+                    "status": "error",
+                    "message": "No data found in the file",
+                    "data": None
+                }
+            
+            # Process each row
+            created_records = []
+            updated_records = []
+            skipped_records = []
+            
+            for row in data_rows:
+                code = row.get('code')
+                
+                if not code:
+                    skipped_records.append({
+                        "row": row,
+                        "reason": "Missing code"
+                    })
+                    continue
+                
+                # Check if record exists
+                existing_record = env[StudentController.MODEL_NAME].search([('code', '=', code)], limit=1)
+                
+                if existing_record:
+                    # Update existing record
+                    try:
+                        existing_record.write({
+                            'fullname': row.get('name', existing_record.name),
+                            'dob': row.get('dob', existing_record.dob),
+                            'sex': row.get('sex', existing_record.sex),
+                            'email': row.get('email', existing_record.email),
+                            'address': row.get('address', existing_record.address),
+                            'homecity': row.get('homecity', existing_record.homecity),
+                            'phone': row.get('phone', existing_record.phone),
+                            'class_id': int(row.get('class_id', existing_record.class_id)) or False,
+                            'username': row.get('username', existing_record.username),
+                            'description': row.get('description', existing_record.description),
+                            'attachment': row.get('attachment', existing_record.attachment),
+                        })
+                        updated_records.append({
+                            "id": existing_record.id,
+                            "code": code
+                        })
+                    except Exception as e:
+                        skipped_records.append({
+                            "row": row,
+                            "reason": str(e)
+                        })
+                else:
+                    # Create new record
+                    try:
+                        new_record = env[StudentController.MODEL_NAME].create({
+                            'fullname': row.get('name', ''),
+                            'sex': row.get('sex', ''),
+                            'email': row.get('email', ''),
+                            'address': row.get('address', ''),
+                            'homecity': row.get('homecity', ''),
+                            'phone': row.get('phonne', ''),
+                            'class_id': int(row.get('class_id', '')),
+                            'username': row.get('username', ''),
+                            'description': row.get('description', ''),
+                            'code': code,
+                            'dob': row.get('dob', ''),
+                            'attachment': row.get('attachment', ''),
+
+                        })
+                        created_records.append({
+                            "id": new_record.id,
+                            "fullname": new_record.fullname,
+                            "dob": new_record.dob,
+                            "sex": new_record.sex,
+                            "email": new_record.email,
+                            "address": new_record.address,
+                            "homecity": new_record.homecity,
+                            "phone": new_record.phone,
+                            "class_id": new_record.class_id.code if new_record.class_id else False,
+                            "username": new_record.username,
+                            "code": code,
+                            "description": new_record.description,
+                            "attachment": new_record.attachment
+                        })
+                    except Exception as e:
+                        skipped_records.append({
+                            "row": row,
+                            "reason": str(e)
+                        })
+            
+            cr.commit()
+            
+            return {
+                "code": 200,
+                "status": "success",
+                "message": f"Import completed: {len(created_records)} created, {len(updated_records)} updated, {len(skipped_records)} skipped",
+                "data": {
+                    "created": created_records,
+                    "updated": updated_records,
+                    "skipped": skipped_records
+                }
+            }
         except Exception as e:
-            _logger.error(f"Error exporting class with id {id}: {e}")
-            raise
+            _logger.error(f"Error importing classes: {e}")
+            return {
+                "code": 500,
+                "status": "error",
+                "message": str(e),
+                "data": None
+            }

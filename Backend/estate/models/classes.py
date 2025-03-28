@@ -6,3 +6,4 @@ class Classes(models.Model):
     name = fields.Char("Name", required=True)
     description = fields.Text("Description")
     code = fields.Char("Code", required=True)
+    students = fields.One2many("students", "class_id", string="Students")

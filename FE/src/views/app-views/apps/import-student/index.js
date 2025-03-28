@@ -1,13 +1,13 @@
 import React, {useState} from 'react'
 import { Card, Table, message, Select, Upload, Button } from 'antd';
-import classesService from 'services/classes'  // Fixed typo in import name
+import studentsService from 'services/students'  // Fixed typo in import name
 import AvatarStatus from 'components/shared-components/AvatarStatus';
 import Flex from 'components/shared-components/Flex'
 import utils from 'utils'
 const { Option } = Select
 
-const ImportClass = () => {
-    const [classesData, setClassesData] = useState([]);
+const ImportStudent = () => {
+    const [studentsData, setStudentsData] = useState([]);
     const [loading, setLoading] = useState(false);
 
     // Fixed handleImport function - it was being called immediately
@@ -31,58 +31,97 @@ const ImportClass = () => {
             return;
         }
 
-        const importClasses = async () => {
+        const importStudents = async () => {
             try {
-                const result = await classesService.import(file);
+                const result = await studentsService.import(file);
                 if (result && result.data) {
-                    console.log('Imported classes:', result.data);
-                    setClassesData(result.data.created);
-                    message.success(`Classes imported successfully`);
-                    console.log(classesData);
+                    console.log('Imported students:', result.data);
+                    setStudentsData(result.data.created);
+                    message.success(`Students imported successfully`);
+                    console.log(studentsData);
                 }
             } catch (error) {
-                console.error('Error importing classes:', error);
-                message.error('Failed to import classes. Please check the file format.');
+                console.error('Error importing Students:', error);
+                message.error('Failed to import students. Please check the file format.');
             } finally {
                 setLoading(false);
             }
         };
         
-        importClasses();
+        importStudents();
     };
 
     const [list, setList] = useState([]);
 
     React.useEffect(() => {
-        setList(classesData);
-    }, [classesData]);
+        setList(studentsData);
+    }, [studentsData]);
 
     const tableColumns = [
-        {
-            title: 'ID',
-            dataIndex: 'id'
-        },
-        {
-            title: 'Class Name',
-            dataIndex: 'name',
-            render: (_, record) => (
-                <div className="d-flex">
-                    <AvatarStatus size={60} type="square" src={'/img/thumbs/book.webp'} name={record.name}/>
-                </div>
-            ),
-            sorter: (a, b) => utils.antdTableSorter(a, b, 'name')
-        },
-        {
-            title: 'Code',
-            dataIndex: 'code',
-            sorter: (a, b) => utils.antdTableSorter(a, b, 'code')
-        },
-        {
-            title: 'Description',
-            dataIndex: 'description',
-            sorter: (a, b) => utils.antdTableSorter(a, b, 'description')
-        },
-    ];
+		{
+			title: 'ID',
+			dataIndex: 'id',
+			render: (_, record, index) => {
+				return index + 1;
+			},
+			sorter: (a, b) => a.id - b.id
+		},
+		{
+			title: 'Student Name',
+			dataIndex: 'fullname',
+			render: (_, record) => (
+				<div className="d-flex">
+					<AvatarStatus size={60} type="square" src={record.attachment} name={record.fullname}/>
+				</div>
+			),
+			sorter: (a, b) => utils.antdTableSorter(a, b, 'name')
+		},
+		{
+			title: 'Student Code',
+			dataIndex: 'code',
+			sorter: (a, b) => utils.antdTableSorter(a, b, 'code')
+		},
+		{
+			title: 'Gender',
+			dataIndex: 'sex',
+			sorter: (a, b) => utils.antdTableSorter(a, b, 'sex'	)
+		},
+		{
+			title: 'Date of Birth',
+			dataIndex: 'dob',
+			sorter: (a, b) => utils.antdTableSorter(a, b, 'dob')
+		},
+		{
+			title: 'Home City',
+			dataIndex: 'homecity',
+			sorter: (a, b) => utils.antdTableSorter(a, b, 'homecity')	
+		},
+		{
+			title: 'Address',
+			dataIndex: 'address',
+			sorter: (a, b) => utils.antdTableSorter(a, b, 'address')
+		},
+		{
+			title: 'Phone',
+			dataIndex: 'phone',
+			sorter: (a, b) => utils.antdTableSorter(a, b, 'phone')
+		},
+		{
+			title: 'Email',
+			dataIndex: 'email',
+			sorter: (a, b) => utils.antdTableSorter(a, b, 'email')
+		},
+		{
+			title: 'Class',
+			dataIndex: 'class_id',
+			sorter: (a, b) => utils.antdTableSorter(a, b, 'classid')
+		},
+		{
+			title: 'Username',
+			dataIndex: 'username',
+			sorter: (a, b) => utils.antdTableSorter(a, b, 'username')
+		}
+	];
 
 
     const [fileType, setFileType] = useState('xlsx');
@@ -93,7 +132,7 @@ const ImportClass = () => {
             <div className="mb-3">
                 <Card>
                     <Flex alignItems="center" justifyContent="space-between">
-                        <h3 className="mb-0 mr-5">Import Classes</h3>
+                        <h3 className="mb-0 mr-5">Import Students</h3>
                         <Flex justifyContent='flex-start'>
                             <Upload
                                 accept=".xlsx,.csv,.json"
@@ -146,4 +185,4 @@ const ImportClass = () => {
         </>
     )
 }
-export default ImportClass;
+export default ImportStudent;

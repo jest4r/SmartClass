@@ -429,35 +429,35 @@ class ClassController:
             _logger.error(f"Error exporting all classes: {e}")
             raise
     
-    @staticmethod
-    def export_by_id(dbname, id, export_type, column_list):
-        """Export a single class by ID"""
-        try:
-            env, cr = DatabaseConnection.get_env(dbname)
+    # @staticmethod
+    # def export_by_id(dbname, id, export_type, column_list):
+    #     """Export a single class by ID"""
+    #     try:
+    #         env, cr = DatabaseConnection.get_env(dbname)
             
-            # Get the record
-            record = env[ClassController.MODEL_NAME].search([('id', '=', int(id))], limit=1)
+    #         # Get the record
+    #         record = env[ClassController.MODEL_NAME].search([('id', '=', int(id))], limit=1)
             
-            if not record:
-                return [], f"class_{id}_not_found.txt"
+    #         if not record:
+    #             return [], f"class_{id}_not_found.txt"
             
-            # Extract data
-            data = []
-            record_data = {}
-            for col in column_list:
-                record_data[col] = getattr(record, col, '')
-            data.append(record_data)
+    #         # Extract data
+    #         data = []
+    #         record_data = {}
+    #         for col in column_list:
+    #             record_data[col] = getattr(record, col, '')
+    #         data.append(record_data)
             
-            # Use export factory to create the appropriate exporter
-            exporter = ExportFactory.create_exporter(export_type)
-            buffer, extension = exporter.export(data, column_list)
+    #         # Use export factory to create the appropriate exporter
+    #         exporter = ExportFactory.create_exporter(export_type)
+    #         buffer, extension = exporter.export(data, column_list)
             
-            filename = f"class_{id}_export.{extension}"
-            return buffer, filename
+    #         filename = f"class_{id}_export.{extension}"
+    #         return buffer, filename
             
-        except Exception as e:
-            _logger.error(f"Error exporting class with id {id}: {e}")
-            raise
+    #     except Exception as e:
+    #         _logger.error(f"Error exporting class with id {id}: {e}")
+    #         raise
     
     @staticmethod
     def mass_export(dbname, id_list, export_type, column_list):
@@ -565,7 +565,8 @@ class ClassController:
                         })
                         created_records.append({
                             "id": new_record.id,
-                            "code": code
+                            "code": code,
+                            "description": new_record.description
                         })
                     except Exception as e:
                         skipped_records.append({
