@@ -288,6 +288,7 @@ const Students = () => {
 					columns={tableColumns} 
 					dataSource={list} 
 					rowKey='id'
+					size='middle'
 					pagination={{
 						showSizeChanger: true,
 						showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
